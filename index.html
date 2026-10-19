@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroWatch – Monitoring Kualitas Udara</title>
+<style>
+:root{--bg:#0b1620;--side:#0f1d29;--panel:#13242f;--line:#223646;--ink:#e8f1f5;--mut:#8aa0ae;--acc:#5fd0c5;--acc2:#e8b86a;--r:16px}
+[data-theme=light]{--bg:#eef3f6;--side:#fff;--panel:#fff;--line:#d9e3ea;--ink:#12212b;--mut:#5d7384;--acc:#0e8f84;--acc2:#b7791f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+h1,h2,h3,.serif{font-family:Georgia,'Times New Roman',serif;font-weight:500}
+button,input,select{font-family:inherit;font-size:14px}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* LOGIN */
+#login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.lhero{padding:8vw 6vw;display:flex;flex-direction:column;justify-content:center;gap:22px;position:relative;overflow:hidden;
+background:radial-gradient(120% 90% at 0% 100%,#1b4d57 0,transparent 60%),radial-gradient(80% 60% at 100% 0,#2a3b52 0,transparent 55%),#0b1620;color:#e8f1f5}
+.lhero h1{font-size:clamp(38px,5vw,64px);line-height:1.05}
+.lhero p{color:#9fb5c2;max-width:420px;line-height:1.6}
+.rings{position:absolute;right:-120px;bottom:-120px;width:420px;height:420px;border-radius:50%;border:1px solid #5fd0c544;box-shadow:0 0 0 50px #5fd0c50d,0 0 0 110px #5fd0c508}
+.lform{display:grid;place-items:center;padding:30px}
+.box{width:100%;max-width:370px}
+.box h2{font-size:30px;margin-bottom:6px}
+.box small{color:var(--mut);display:block;margin-bottom:24px}
+.in{position:relative;margin-bottom:14px}
+.in label{font-size:12px;color:var(--mut);display:block;margin-bottom:5px}
+.in input{width:100%;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.in input:focus{outline:2px solid var(--acc);border-color:transparent}
+.eye{position:absolute;right:10px;bottom:9px;background:none;border:0;color:var(--mut);font-size:16px}
+.btn{background:var(--acc);color:#07211e;border:0;border-radius:10px;padding:12px 18px;font-weight:700}
+.btn:hover{filter:brightness(1.08)}
+.btn.full{width:100%;margin-top:6px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.err{color:#ef6a6a;font-size:13px;min-height:20px}
+.hint{font-size:12px;color:var(--mut);margin-top:16px;text-align:center}
+
+/* APP */
+#app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--side);border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px 20px;font-size:20px}
+.brand i{width:32px;height:32px;border-radius:10px;background:conic-gradient(var(--acc),var(--acc2),var(--acc));display:grid;place-items:center;font-style:normal;color:#07211e}
+.nav{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:none;border:0;color:var(--mut);text-align:left;width:100%}
+.nav:hover{background:var(--panel);color:var(--ink)}
+.nav.on{background:var(--panel);color:var(--acc);box-shadow:inset 3px 0 var(--acc)}
+.badge{margin-left:auto;background:#eb5757;color:#fff;border-radius:20px;font-size:11px;padding:1px 7px}
+.spacer{flex:1}
+.top{display:flex;align-items:center;gap:16px;padding:18px 30px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.top h2{font-size:26px}
+.top .r{margin-left:auto;display:flex;align-items:center;gap:14px;color:var(--mut);font-size:13px}
+.live{display:inline-flex;align-items:center;gap:6px}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:#2fbf71;animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.25}}
+.av{width:32px;height:32px;border-radius:50%;background:var(--acc);color:#07211e;display:grid;place-items:center;font-weight:700}
+section.view{display:none;padding:26px 30px 50px}
+section.view.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card h3{font-size:17px;margin-bottom:14px}
+.g{display:grid;gap:18px}
+.g2{grid-template-columns:minmax(300px,1fr) 2fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g5{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+
+/* gauge */
+.gauge{text-align:center}
+.gauge svg{width:100%;max-width:290px}
+.gv{font-family:Georgia,serif;font-size:62px;line-height:1}
+.gc{font-weight:700;margin:6px 0}
+.gt{color:var(--mut);font-size:13px;line-height:1.5}
+.m{display:flex;flex-direction:column;gap:6px}
+.m span{font-size:12px;color:var(--mut)}
+.m b{font-family:Georgia,serif;font-size:30px;font-weight:500}
+.m small{color:var(--mut);font-size:12px}
+.bar{height:5px;background:var(--line);border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;transition:width .6s}
+canvas{width:100%;height:230px;display:block}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{color:var(--mut);font-weight:500;text-align:left;font-size:12px}
+th,td{padding:11px 8px;border-bottom:1px solid var(--line)}
+.pill{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#10181e;white-space:nowrap}
+.tw{overflow-x:auto}
+.al{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line)}
+.al:last-child{border:0}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none}
+.al p{font-size:14px}.al small{color:var(--mut)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+select,input[type=number]{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.set{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.set:last-child{border:0}
+.set small{display:block;color:var(--mut)}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--panel);border:1px solid #eb5757;border-left-width:5px;padding:14px 18px;border-radius:12px;max-width:320px;transform:translateY(120px);opacity:0;transition:.4s;z-index:20;font-size:14px}
+.toast.show{transform:none;opacity:1}
+.empty{color:var(--mut);padding:20px 0;text-align:center}
+
+@media(max-width:900px){
+#login{grid-template-columns:1fr}.lhero{padding:50px 24px}
+#app{grid-template-columns:1fr}
+aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:10px;align-items:center}
+.brand{padding:0 10px 0 0}.spacer{display:none}.nav{width:auto;white-space:nowrap}
+.g2,.g3{grid-template-columns:1fr}
+section.view,.top{padding-left:16px;padding-right:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lhero">
+    <div class="brand" style="padding:0;color:#e8f1f5"><i>◐</i> AeroWatch</div>
+    <h1>Udara yang Anda hirup, terpantau setiap detik.</h1>
+    <p>Sistem monitoring kualitas udara real-time: PM2.5, PM10, CO₂, CO, suhu, dan kelembapan dari lima stasiun sensor.</p>
+    <div class="rings"></div>
+  </div>
+  <div class="lform">
+    <form class="box" id="fl">
+      <h2>Masuk</h2><small>Gunakan akun operator untuk membuka dashboard.</small>
+      <div class="in"><label for="u">Username</label><input id="u" autocomplete="username" autofocus></div>
+      <div class="in"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password"><button type="button" class="eye" id="eye" aria-label="Tampilkan password">👁</button></div>
+      <div class="err" id="err"></div>
+      <button class="btn full">Masuk ke dashboard</button>
+      <p class="hint">Demo: <b>admin</b> / <b>udara123</b></p>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <aside>
+    <div class="brand"><i>◐</i> AeroWatch</div>
+    <button class="nav on" data-v="dash">◎ Dashboard</button>
+    <button class="nav" data-v="sens">▦ Stasiun Sensor</button>
+    <button class="nav" data-v="hist">◔ Riwayat</button>
+    <button class="nav" data-v="alr">△ Peringatan <span class="badge hidden" id="bd">0</span></button>
+    <button class="nav" data-v="set">⚙ Pengaturan</button>
+    <div class="spacer"></div>
+    <button class="nav" id="out">⎋ Keluar</button>
+  </aside>
+  <div>
+    <div class="top">
+      <h2 id="ttl">Dashboard</h2>
+      <div class="r"><span class="live">Live</span><span id="clk"></span><div class="av">A</div><span>Admin</span></div>
+    </div>
+
+    <!-- Dashboard -->
+    <section class="view on" id="dash">
+      <div class="g g2">
+        <div class="card gauge">
+          <h3>Indeks Kualitas Udara (rata-rata)</h3>
+          <svg viewBox="0 0 220 130"><path d="M20 115 A90 90 0 0 1 200 115" fill="none" stroke="var(--line)" stroke-width="16" stroke-linecap="round"/>
+          <path id="arc" d="M20 115 A90 90 0 0 1 200 115" fill="none" stroke="#2fbf71" stroke-width="16" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition:stroke-dasharray .8s,stroke .8s"/></svg>
+          <div class="gv" id="gv">–</div><div class="gc" id="gc">–</div><div class="gt" id="gt"></div>
+        </div>
+        <div class="g g3" id="mets"></div>
+      </div>
+      <div class="g g2" style="margin-top:18px;grid-template-columns:2fr minmax(280px,1fr)">
+        <div class="card"><h3>Tren PM2.5 langsung (µg/m³)</h3><canvas id="live"></canvas></div>
+        <div class="card"><h3>Peringkat stasiun</h3><div id="rank"></div></div>
+      </div>
+    </section>
+
+    <!-- Sensor -->
+    <section class="view" id="sens"><div class="card tw"><h3>Data seluruh stasiun</h3>
+      <table><thead><tr><th>Stasiun</th><th>PM2.5</th><th>PM10</th><th>CO₂ (ppm)</th><th>CO (ppm)</th><th>Suhu</th><th>Lembap</th><th>AQI</th><th>Status</th></tr></thead><tbody id="tb"></tbody></table></div></section>
+
+    <!-- Riwayat -->
+    <section class="view" id="hist"><div class="card">
+      <div class="row"><select id="hs"></select><select id="hr"><option value="24">24 jam terakhir</option><option value="12">12 jam terakhir</option><option value="48">48 jam terakhir</option></select>
+      <button class="btn ghost" id="csv">⬇ Ekspor CSV</button></div>
+      <canvas id="hc" style="height:300px"></canvas>
+      <p class="gt" id="hsum" style="margin-top:12px"></p></div></section>
+
+    <!-- Peringatan -->
+    <section class="view" id="alr"><div class="card"><div class="row"><h3 style="margin:0">Log peringatan</h3><button class="btn ghost" id="clr" style="margin-left:auto">Hapus semua</button></div><div id="al"></div></div></section>
+
+    <!-- Pengaturan -->
+    <section class="view" id="set"><div class="card" style="max-width:640px"><h3>Pengaturan</h3>
+      <div class="set"><div>Ambang peringatan PM2.5<small>Peringatan muncul jika melebihi nilai ini (µg/m³)</small></div><input type="number" id="th" min="10" max="300" style="width:90px"></div>
+      <div class="set"><div>Interval pembaruan<small>Seberapa sering data sensor diperbarui</small></div><select id="iv"><option value="2000">2 detik</option><option value="3000">3 detik</option><option value="5000">5 detik</option></select></div>
+      <div class="set"><div>Tema tampilan<small>Gelap atau terang</small></div><button class="btn ghost" id="thm">Ganti tema</button></div>
+      <div class="set"><div>Notifikasi pop-up<small>Tampilkan pesan saat ada peringatan baru</small></div><input type="checkbox" id="nt" checked></div>
+    </div></section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const ACC={u:'admin',p:'udara123'};
+const CAT=[[50,'Baik','#2fbf71','Udara bersih. Aman untuk semua aktivitas luar ruangan.'],[100,'Sedang','#f2c94c','Dapat diterima. Orang yang sangat sensitif sebaiknya mengurangi aktivitas berat.'],[150,'Tidak sehat bagi sensitif','#f2994a','Anak-anak, lansia, dan penderita asma sebaiknya membatasi aktivitas luar.'],[200,'Tidak sehat','#eb5757','Kurangi aktivitas luar ruangan dan gunakan masker.'],[300,'Sangat tidak sehat','#a45be0','Hindari aktivitas luar. Tutup jendela.'],[999,'Berbahaya','#8e2447','Darurat. Tetap di dalam ruangan.']];
+const cat=a=>CAT.find(c=>a<=c[0]);
+const BP=[[0,12,0,50],[12.1,35.4,51,100],[35.5,55.4,101,150],[55.5,150.4,151,200],[150.5,250.4,201,300],[250.5,500,301,500]];
+function aqi(p){for(const [a,b,c,d] of BP) if(p<=b) return Math.round((d-c)/(b-a)*(Math.max(p,a)-a)+c);return 500}
+const R=(a,b)=>a+Math.random()*(b-a);
+const ST=['Pusat Kota','Kawasan Industri','Area Pemukiman','Terminal','Taman Kota'].map((n,i)=>({n,pm25:[28,62,20,48,12][i],t:30,h:70}));
+let live=[],alerts=[],tick=null,cfg=JSON.parse(localStorage.getItem('aw')||'{}');
+cfg={th:55,iv:3000,theme:'dark',nt:true,...cfg};
+const save=()=>localStorage.setItem('aw',JSON.stringify(cfg));
+document.documentElement.dataset.theme=cfg.theme;
+
+/* login */
+$('#eye').onclick=()=>{const p=$('#p');p.type=p.type=='password'?'text':'password'};
+$('#fl').onsubmit=e=>{e.preventDefault();
+  if($('#u').value.trim()==ACC.u&&$('#p').value==ACC.p){sessionStorage.setItem('aw-in',1);enter()}
+  else $('#err').textContent='Username atau password salah.'};
+function enter(){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');init();go('dash')}
+$('#out').onclick=()=>{sessionStorage.removeItem('aw-in');clearInterval(tick);$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#p').value=''};
+
+/* nav */
+const TT={dash:'Dashboard',sens:'Stasiun Sensor',hist:'Riwayat',alr:'Peringatan',set:'Pengaturan'};
+function go(v){$$('.view').forEach(s=>s.classList.toggle('on',s.id==v));$$('.nav[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v==v));$('#ttl').textContent=TT[v];
+  if(v=='hist')drawHist();if(v=='dash')drawLive()}
+$$('.nav[data-v]').forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+/* data */
+function step(){
+  ST.forEach(s=>{s.pm25=Math.min(220,Math.max(4,s.pm25+R(-4,4.2)));s.pm10=s.pm25*1.55+R(0,6);s.co2=Math.round(400+s.pm25*3.2+R(0,40));s.co=+(0.3+s.pm25/55+R(0,.3)).toFixed(1);s.t=+(Math.min(36,Math.max(24,s.t+R(-.3,.3)))).toFixed(1);s.h=Math.round(Math.min(95,Math.max(40,s.h+R(-1.5,1.5))));s.a=aqi(s.pm25);
+    if(s.pm25>cfg.th&&(!s.last||Date.now()-s.last>30000)){s.last=Date.now();addAlert(s)}});
+  const avg=ST.reduce((a,s)=>a+s.pm25,0)/ST.length;live.push(avg);if(live.length>30)live.shift();render()}
+function addAlert(s){alerts.unshift({n:s.n,v:s.pm25.toFixed(1),a:s.a,t:new Date()});alerts=alerts.slice(0,50);badge();renderAlerts();
+  if(cfg.nt){const t=$('#toast');t.innerHTML='<b>Peringatan: '+s.n+'</b><br>PM2.5 '+s.pm25.toFixed(1)+' µg/m³ melewati ambang '+cfg.th;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4500)}}
+function badge(){const b=$('#bd');b.textContent=alerts.length;b.classList.toggle('hidden',!alerts.length)}
+
+function render(){
+  const av=k=>ST.reduce((a,s)=>a+s[k],0)/ST.length;
+  const A=aqi(av('pm25')),c=cat(A);
+  $('#gv').textContent=A;$('#gv').style.color=c[2];$('#gc').textContent=c[1];$('#gc').style.color=c[2];$('#gt').textContent=c[3];
+  $('#arc').setAttribute('stroke-dasharray',Math.min(A/300,1)*100+' 100');$('#arc').setAttribute('stroke',c[2]);
+  const M=[['PM2.5','µg/m³',av('pm25'),150],['PM10','µg/m³',av('pm10'),250],['CO₂','ppm',av('co2'),1500],['CO','ppm',av('co'),9],['Suhu','°C',av('t'),40],['Kelembapan','%',av('h'),100]];
+  $('#mets').innerHTML=M.map(m=>{const p=Math.min(m[2]/m[3],1),col=p<.4?'#2fbf71':p<.7?'#f2c94c':'#eb5757';
+    return `<div class="card m"><span>${m[0]}</span><b>${m[2].toFixed(m[1]=='ppm'&&m[0]=='CO'?1:0)}<small> ${m[1]}</small></b><div class="bar"><i style="width:${p*100}%;background:${col}"></i></div></div>`}).join('');
+  $('#rank').innerHTML=[...ST].sort((a,b)=>b.pm25-a.pm25).map((s,i)=>{const k=cat(s.a);return `<div class="al"><div class="dot" style="background:${k[2]}"></div><div style="flex:1"><p>${s.n}</p><small>PM2.5 ${s.pm25.toFixed(1)} µg/m³</small></div><span class="pill" style="background:${k[2]}">${s.a}</span></div>`}).join('');
+  $('#tb').innerHTML=ST.map(s=>{const k=cat(s.a);return `<tr><td>${s.n}</td><td>${s.pm25.toFixed(1)}</td><td>${s.pm10.toFixed(1)}</td><td>${s.co2}</td><td>${s.co}</td><td>${s.t}°C</td><td>${s.h}%</td><td><b>${s.a}</b></td><td><span class="pill" style="background:${k[2]}">${k[1]}</span></td></tr>`}).join('');
+  drawLive()}
+function renderAlerts(){$('#al').innerHTML=alerts.length?alerts.map(a=>{const k=cat(a.a);return `<div class="al"><div class="dot" style="background:${k[2]}"></div><div><p><b>${a.n}</b> – PM2.5 ${a.v} µg/m³ (AQI ${a.a}, ${k[1]})</p><small>${a.t.toLocaleTimeString('id-ID')}</small></div></div>`}).join(''):'<div class="empty">Belum ada peringatan. Semua stasiun di bawah ambang.</div>'}
+$('#clr').onclick=()=>{alerts=[];badge();renderAlerts()};
+
+/* charts */
+function ctx(c){const r=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;c.width=w*r;c.height=h*r;const x=c.getContext('2d');x.scale(r,r);return[x,w,h]}
+const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function grid(x,w,h,max){x.strokeStyle=cv('--line');x.fillStyle=cv('--mut');x.font='11px sans-serif';x.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=10+(h-30)*i/4;x.beginPath();x.moveTo(36,y);x.lineTo(w,y);x.stroke();x.fillText(Math.round(max*(1-i/4)),2,y+4)}}
+function drawLive(){const c=$('#live');if(!c.clientWidth||!live.length)return;const[x,w,h]=ctx(c),max=Math.max(60,...live)*1.15;grid(x,w,h,max);
+  const px=i=>36+(w-44)*i/Math.max(live.length-1,1),py=v=>10+(h-30)*(1-v/max);
+  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,cv('--acc')+'66');g.addColorStop(1,cv('--acc')+'00');
+  x.beginPath();live.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.strokeStyle=cv('--acc');x.lineWidth=2.5;x.stroke();
+  x.lineTo(px(live.length-1),h-20);x.lineTo(px(0),h-20);x.fillStyle=g;x.fill()}
+let H=[];
+function mkHist(){H=ST.map((s,i)=>Array.from({length:48},(_,j)=>Math.max(5,[28,62,20,48,12][i]+Math.sin(j/4+i)*14+R(-6,6))))}
+function drawHist(){const c=$('#hc');if(!c.clientWidth)return;const i=+$('#hs').value,n=+$('#hr').value,d=H[i].slice(-n),[x,w,h]=ctx(c),max=Math.max(...d)*1.15;grid(x,w,h,max);
+  const bw=(w-44)/d.length;d.forEach((v,j)=>{x.fillStyle=cat(aqi(v))[2];const bh=(h-30)*v/max;x.fillRect(38+j*bw,h-20-bh,Math.max(bw-3,2),bh)});
+  const a=d.reduce((p,q)=>p+q,0)/d.length;$('#hsum').textContent=`${ST[i].n}: rata-rata ${a.toFixed(1)} µg/m³ (AQI ${aqi(a)}), tertinggi ${Math.max(...d).toFixed(1)}, terendah ${Math.min(...d).toFixed(1)}.`}
+$('#hs').onchange=$('#hr').onchange=drawHist;
+$('#csv').onclick=()=>{const i=+$('#hs').value,n=+$('#hr').value,d=H[i].slice(-n);
+  const rows=['jam_ke,pm25,aqi,kategori',...d.map((v,j)=>`${j+1},${v.toFixed(1)},${aqi(v)},${cat(aqi(v))[1]}`)];
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));a.download='riwayat-'+ST[i].n.replace(/\s/g,'-')+'.csv';a.click()};
+addEventListener('resize',()=>{drawLive();drawHist()});
+
+/* settings */
+$('#th').value=cfg.th;$('#iv').value=cfg.iv;$('#nt').checked=cfg.nt;
+$('#th').onchange=e=>{cfg.th=+e.target.value;save()};
+$('#iv').onchange=e=>{cfg.iv=+e.target.value;save();start()};
+$('#nt').onchange=e=>{cfg.nt=e.target.checked;save()};
+$('#thm').onclick=()=>{cfg.theme=cfg.theme=='dark'?'light':'dark';document.documentElement.dataset.theme=cfg.theme;save();drawLive()};
+
+function start(){clearInterval(tick);tick=setInterval(step,cfg.iv)}
+let ready=false;
+function init(){if(!ready){ST.forEach(s=>{s.pm10=s.pm25*1.5;s.co2=500;s.co=.5;s.a=aqi(s.pm25)});
+  $('#hs').innerHTML=ST.map((s,i)=>`<option value="${i}">${s.n}</option>`).join('');mkHist();renderAlerts();ready=true;
+  setInterval(()=>$('#clk').textContent=new Date().toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'medium'}),1000)}
+  for(let i=0;i<12;i++)step();start()}
+if(sessionStorage.getItem('aw-in'))enter();
+</script>
+</body>
+</html>
